@@ -35,7 +35,7 @@ class DataProvider:
         self,
         pair: str,
         timeframe: str,
-        n: int = 120
+        n: int = 5000
     ) -> Optional[pd.DataFrame]:
         """
         Fetch candles from TwelveData API
@@ -85,7 +85,9 @@ class DataProvider:
                         data = response.json()
                     
                     # Debug: log response
-                    logger.debug(f"📦 API response keys: {list(data.keys())}")
+                    logger.info(f"📦 API response keys: {list(data.keys())}")
+                    if "values" in data:
+                        logger.info(f"📊 Number of values returned: {len(data['values'])}")
                     
                     # Check for API errors
                     if "status" in data and data["status"] == "error":
@@ -122,10 +124,12 @@ class DataProvider:
                     df = df.dropna(subset=["open", "high", "low", "close"])
                     
                     if len(df) < 50:
-                        logger.warning(f"⚠️ Insufficient data for {pair} on {timeframe}: {len(df)} candles")
-                        return None
+                        logger.warning(f"⚠️ Insufficient data for {pair} on {timeframe}: {len(df)} candles (requested: {n})")
+                        logger.warning(f"📦 First few rows: {df.head(3).to_dict()}")
+                        # Don't return None, use what we have for debugging
+                        # return None
                     
-                    logger.debug(f"✅ Fetched {len(df)} candles for {pair} on {timeframe}")
+                    logger.info(f"✅ Fetched {len(df)} candles for {pair} on {timeframe} (requested: {n})")
                     return df
                 
                 except httpx.TimeoutException:
@@ -149,7 +153,7 @@ class DataProvider:
         self,
         pairs: List[str],
         timeframe: str,
-        n: int = 120
+        n: int = 5000
     ) -> Dict[str, pd.DataFrame]:
         """
         Fetch candles for multiple pairs in parallel
