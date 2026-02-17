@@ -44,8 +44,22 @@ def main():
     logger.info("📊 MJ Trading - Professional Binary Options Scanner")
     logger.info("=" * 60)
     
-    # Create application
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    # Create application with post_init to clear webhook
+    async def post_init(application):
+        """Clear webhook before starting polling"""
+        try:
+            logger.info("🧹 Clearing webhook and pending updates...")
+            await application.bot.delete_webhook(drop_pending_updates=True)
+            logger.info("✅ Webhook cleared successfully")
+        except Exception as e:
+            logger.warning(f"⚠️ Webhook clear warning: {e}")
+    
+    app = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .post_init(post_init)
+        .build()
+    )
     
     # Setup handlers
     setup_handlers(app)
@@ -54,18 +68,6 @@ def main():
     logger.info("✅ Bot is ready!")
     logger.info("🔍 Running in polling mode")
     logger.info("=" * 60)
-    
-    # Aggressively clear webhook and pending updates
-    import asyncio
-    async def clear_webhook():
-        try:
-            logger.info("🧹 Clearing webhook and pending updates...")
-            await app.bot.delete_webhook(drop_pending_updates=True)
-            logger.info("✅ Webhook cleared successfully")
-        except Exception as e:
-            logger.warning(f"⚠️ Webhook clear warning: {e}")
-    
-    asyncio.run(clear_webhook())
     
     # Run polling with drop_pending_updates to prevent conflicts
     app.run_polling(
