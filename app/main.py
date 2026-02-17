@@ -55,6 +55,18 @@ def main():
     logger.info("🔍 Running in polling mode")
     logger.info("=" * 60)
     
+    # Aggressively clear webhook and pending updates
+    import asyncio
+    async def clear_webhook():
+        try:
+            logger.info("🧹 Clearing webhook and pending updates...")
+            await app.bot.delete_webhook(drop_pending_updates=True)
+            logger.info("✅ Webhook cleared successfully")
+        except Exception as e:
+            logger.warning(f"⚠️ Webhook clear warning: {e}")
+    
+    asyncio.run(clear_webhook())
+    
     # Run polling with drop_pending_updates to prevent conflicts
     app.run_polling(
         allowed_updates=Update.ALL_TYPES,
