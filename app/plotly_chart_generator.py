@@ -42,9 +42,9 @@ class PlotlyChartGenerator:
             # Extract signal data
             pair = signal.pair
             signal_type = signal.direction
-            entry_price = signal.entry_price
+            entry_price = signal.trigger_price or signal.current_price
             score = signal.score
-            expiry = signal.expiry
+            expiry = signal.expiry_minutes
             
             if df is None or len(df) < 10:
                 logger.error("❌ Insufficient data for chart")
@@ -55,9 +55,9 @@ class PlotlyChartGenerator:
             df = calculate_all_indicators(df)
             
             # Extract indicator series
-            ema9 = df.get('ema_9')
-            ema21 = df.get('ema_21')
-            ema50 = df.get('ema_50')
+            ema9 = df.get('ema9')
+            ema21 = df.get('ema21')
+            ema50 = df.get('ema50')
             rsi = df.get('rsi')
             
             # Create subplots: Main chart + RSI
