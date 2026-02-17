@@ -55,8 +55,11 @@ def main():
     logger.info("🔍 Running in polling mode")
     logger.info("=" * 60)
     
-    # Run polling
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Run polling with drop_pending_updates to prevent conflicts
+    app.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+        drop_pending_updates=True  # Drop old updates to prevent conflicts
+    )
 
 
 if __name__ == "__main__":

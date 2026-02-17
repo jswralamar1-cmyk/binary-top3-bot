@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: worker
     name: binary-top3-bot
     env: docker
     plan: free
