@@ -5,7 +5,8 @@ Configuration for Binary Top3 Bot
 import os
 
 # Telegram
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_TOKEN = TELEGRAM_BOT_TOKEN  # Alias for compatibility
 
 # TwelveData API
 TWELVEDATA_API_KEY = os.getenv("TWELVEDATA_API_KEY")
