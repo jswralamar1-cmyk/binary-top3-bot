@@ -4,6 +4,8 @@ MJ Trading - Professional Binary Options Scanner
 """
 
 import os
+import sys
+import fcntl
 import logging
 from telegram import Update
 from telegram.ext import Application
@@ -21,6 +23,18 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main entry point"""
+    # Instance lock (prevent multiple instances)
+    lock_file = "/tmp/binary_top3_bot.lock"
+    try:
+        lock_fd = open(lock_file, "w")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_fd.write(str(os.getpid()))
+        lock_fd.flush()
+        logger.info("✅ Instance lock acquired (PID: {})".format(os.getpid()))
+    except IOError:
+        logger.error("❌ Another instance is already running!")
+        sys.exit(1)
+    
     # Check token
     if not TELEGRAM_BOT_TOKEN:
         raise RuntimeError("❌ Missing TELEGRAM_BOT_TOKEN environment variable")
