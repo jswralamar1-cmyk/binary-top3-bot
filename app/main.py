@@ -7,6 +7,7 @@ import os
 import sys
 import fcntl
 import logging
+import requests
 from telegram import Update
 from telegram.ext import Application
 
@@ -44,22 +45,21 @@ def main():
     logger.info("📊 MJ Trading - Professional Binary Options Scanner")
     logger.info("=" * 60)
     
-    # Create application with post_init to clear webhook
-    async def post_init(application):
-        """Clear webhook before starting polling"""
-        try:
-            logger.info("🧹 Clearing webhook and pending updates...")
-            await application.bot.delete_webhook(drop_pending_updates=True)
-            logger.info("✅ Webhook cleared successfully")
-        except Exception as e:
-            logger.warning(f"⚠️ Webhook clear warning: {e}")
+    # Force delete webhook before starting
+    logger.info("🧹 Force deleting webhook...")
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
+        response = requests.post(url, params={"drop_pending_updates": True}, timeout=10)
+        result = response.json()
+        if result.get("ok"):
+            logger.info("✅ Webhook deleted successfully")
+        else:
+            logger.warning(f"⚠️ Webhook delete response: {result}")
+    except Exception as e:
+        logger.warning(f"⚠️ Error deleting webhook: {e}")
     
-    app = (
-        Application.builder()
-        .token(TELEGRAM_BOT_TOKEN)
-        .post_init(post_init)
-        .build()
-    )
+    # Create application
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     
     # Setup handlers
     setup_handlers(app)

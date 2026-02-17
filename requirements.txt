@@ -8,3 +8,4 @@ Pillow==10.2.0
 yfinance==0.2.38
 plotly==5.20.0
 kaleido==0.2.1
+requests==2.31.0
