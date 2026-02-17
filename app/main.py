@@ -26,11 +26,14 @@ def main():
     if not TELEGRAM_BOT_TOKEN:
         raise RuntimeError("❌ Missing TELEGRAM_BOT_TOKEN environment variable")
     
-    # Get webhook URL from environment (Render provides this)
+    # Get webhook URL from environment
     webhook_url = os.getenv("RENDER_EXTERNAL_URL")
+    
+    # If not set, build it from service name (Render convention)
     if not webhook_url:
-        logger.error("❌ RENDER_EXTERNAL_URL not found! Cannot set webhook.")
-        sys.exit(1)
+        service_name = os.getenv("RENDER_SERVICE_NAME", "binary-top3-bot")
+        webhook_url = f"https://{service_name}.onrender.com"
+        logger.info(f"🔧 Built webhook URL from service name: {webhook_url}")
     
     # Build full webhook path
     webhook_path = f"{webhook_url}/webhook"
