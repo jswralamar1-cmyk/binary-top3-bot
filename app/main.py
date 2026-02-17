@@ -5,9 +5,7 @@ MJ Trading - Professional Binary Options Scanner
 
 import os
 import sys
-import fcntl
 import logging
-import requests
 from telegram import Update
 from telegram.ext import Application
 
@@ -24,39 +22,25 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main entry point"""
-    # Instance lock (prevent multiple instances)
-    lock_file = "/tmp/binary_top3_bot.lock"
-    try:
-        lock_fd = open(lock_file, "w")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        lock_fd.write(str(os.getpid()))
-        lock_fd.flush()
-        logger.info("✅ Instance lock acquired (PID: {})".format(os.getpid()))
-    except IOError:
-        logger.error("❌ Another instance is already running!")
-        sys.exit(1)
-    
     # Check token
     if not TELEGRAM_BOT_TOKEN:
         raise RuntimeError("❌ Missing TELEGRAM_BOT_TOKEN environment variable")
+    
+    # Get webhook URL from environment (Render provides this)
+    webhook_url = os.getenv("RENDER_EXTERNAL_URL")
+    if not webhook_url:
+        logger.error("❌ RENDER_EXTERNAL_URL not found! Cannot set webhook.")
+        sys.exit(1)
+    
+    # Build full webhook path
+    webhook_path = f"{webhook_url}/webhook"
     
     logger.info("=" * 60)
     logger.info("🚀 Binary Top3 Bot Starting...")
     logger.info("📊 MJ Trading - Professional Binary Options Scanner")
     logger.info("=" * 60)
-    
-    # Force delete webhook before starting
-    logger.info("🧹 Force deleting webhook...")
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook"
-        response = requests.post(url, params={"drop_pending_updates": True}, timeout=10)
-        result = response.json()
-        if result.get("ok"):
-            logger.info("✅ Webhook deleted successfully")
-        else:
-            logger.warning(f"⚠️ Webhook delete response: {result}")
-    except Exception as e:
-        logger.warning(f"⚠️ Error deleting webhook: {e}")
+    logger.info(f"🌐 Webhook URL: {webhook_path}")
+    logger.info("=" * 60)
     
     # Create application
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
@@ -64,15 +48,18 @@ def main():
     # Setup handlers
     setup_handlers(app)
     
-    # Start bot
+    # Start bot with webhook
     logger.info("✅ Bot is ready!")
-    logger.info("🔍 Running in polling mode")
+    logger.info("🔗 Running in webhook mode")
     logger.info("=" * 60)
     
-    # Run polling with drop_pending_updates to prevent conflicts
-    app.run_polling(
-        allowed_updates=Update.ALL_TYPES,
-        drop_pending_updates=True  # Drop old updates to prevent conflicts
+    # Run webhook
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.getenv("PORT", 10000)),
+        url_path="webhook",
+        webhook_url=webhook_path,
+        drop_pending_updates=True  # Drop old updates
     )
 
 
