@@ -52,8 +52,8 @@ class DataProvider:
         async with self.semaphore:
             for attempt in range(API_RETRY + 1):
                 try:
-                    # Convert pair format: EUR/USD -> EURUSD
-                    symbol = pair.replace("/", "")
+                    # Keep slash for Forex pairs (TwelveData requires EUR/USD format)
+                    symbol = pair
                     
                     # Convert timeframe format: 1min -> 1m, 5min -> 5m, etc.
                     interval_map = {
