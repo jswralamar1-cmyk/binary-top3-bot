@@ -111,6 +111,10 @@ class YahooDataProvider:
                 logger.warning(f"⚠️ No data returned for {pair}")
                 return None
             
+            # Flatten multi-index columns if present
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
+            
             # Reset index to get datetime as column
             df = df.reset_index()
             
