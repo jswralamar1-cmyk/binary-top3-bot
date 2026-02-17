@@ -51,51 +51,26 @@ class Formatter:
             market_emoji = "↔️"
             market_text = "سوق عرضي (Range)"
         
-        # Build message
-        message = f"""━━━━━━━━━━━━━━━━━━━━━━━━
-🏆 **#{rank} - {signal.pair}**
-━━━━━━━━━━━━━━━━━━━━━━━━
+        # Build message (shortened)
+        message = f"""🏆 **#{rank} - {signal.pair}** {emoji}
 
-{direction_emoji} **الاتجاه:** {direction_text}
-⭐ **النقاط:** {signal.score:.0f}/100 {emoji} {tier}
-{market_emoji} **حالة السوق:** {market_text}
+{direction_emoji} **{direction_text}** | ⭐ {signal.score:.0f}/100
 
-━━━━━━━━━━━━━━━━━━━━━━━━
-📍 **خطة الدخول:**
+📍 **الدخول:** {signal.trigger_price:.5f} (الحالي: {signal.current_price:.5f})
+⏱️ **المدة:** {signal.expiry_minutes}د | 🕒 **صالح:** {signal.validity_seconds}ث
 
-🎯 **نقطة الدخول:** {signal.trigger_price:.5f} (كسر)
-💵 **السعر الحالي:** {signal.current_price:.5f}
-📏 **المسافة:** {signal.distance_pips:.1f} نقطة
-
-⏱️ **مدة الصفقة:** {signal.expiry_minutes} دقيقة
-🕒 **صالح لمدة:** {signal.validity_seconds} ثانية
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-💡 **الأسباب:**
-
+💡 **السبب:**
 """
         
-        # Add reasons
-        for i, reason in enumerate(signal.reasons[:5], 1):  # Max 5 reasons
+        # Add top 2 reasons only
+        for i, reason in enumerate(signal.reasons[:2], 1):
             message += f"{i}️⃣ {reason}\n"
         
-        message += "\n━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        
-        # Add warnings if any
+        # Add warnings if critical
         if signal.warnings:
-            message += "⚠️ **تحذيرات المخاطر:**\n\n"
-            for warning in signal.warnings:
-                message += f"{warning}\n"
-            message += f"\n🛡️ **مستوى المخاطرة:** {signal.risk_level}\n"
-            message += "\n━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            message += f"\n⚠️ {signal.warnings[0]}"  # Only first warning
         
-        # Add instructions
-        message += """⚠️ **تعليمات مهمة:**
-
-✅ ادخل فقط إذا تحقق الكسر (Price Trigger)
-❌ لا تدخل إذا لم يصل السعر خلال Validity Window
-❌ لا تدخل إذا ظهر wick معاكس كبير
-"""
+        message += "\n\n✅ **ادخل عند الكسر فقط**"
         
         return message
     

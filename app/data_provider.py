@@ -52,13 +52,28 @@ class DataProvider:
         async with self.semaphore:
             for attempt in range(API_RETRY + 1):
                 try:
+                    # Convert pair format: EUR/USD -> EURUSD
+                    symbol = pair.replace("/", "")
+                    
+                    # Convert timeframe format: 1min -> 1m, 5min -> 5m, etc.
+                    interval_map = {
+                        "1min": "1min",
+                        "5min": "5min",
+                        "15min": "15min",
+                        "1h": "1h",
+                        "4h": "4h"
+                    }
+                    interval = interval_map.get(timeframe, timeframe)
+                    
                     params = {
-                        "symbol": pair,
-                        "interval": timeframe,
+                        "symbol": symbol,
+                        "interval": interval,
                         "outputsize": str(n),
                         "apikey": self.api_key,
                         "format": "JSON",
                     }
+                    
+                    logger.debug(f"🔍 Fetching {symbol} ({pair}) on {interval}...")
                     
                     async with httpx.AsyncClient() as client:
                         response = await client.get(
@@ -69,9 +84,19 @@ class DataProvider:
                         response.raise_for_status()
                         data = response.json()
                     
+                    # Debug: log response
+                    logger.debug(f"📦 API response keys: {list(data.keys())}")
+                    
                     # Check for API errors
                     if "status" in data and data["status"] == "error":
                         logger.error(f"❌ API error for {pair} on {timeframe}: {data.get('message')}")
+                        logger.error(f"📦 Full response: {data}")
+                        return None
+                    
+                    # Check for code/message error format
+                    if "code" in data and data.get("code") != 200:
+                        logger.error(f"❌ API error for {pair}: {data.get('message', 'Unknown error')}")
+                        logger.error(f"📦 Full response: {data}")
                         return None
                     
                     values = data.get("values")
