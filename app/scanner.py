@@ -9,13 +9,13 @@ from typing import List
 
 from app.config import TRADING_PAIRS
 from app.models import UserSelection, ScanResult, Signal
-from app.data_provider import DataProvider
+from app.yahoo_data_provider import YahooDataProvider
 from app.signal_engine import SignalEngine
 from app.confirm_engine import ConfirmEngine
 from app.entry_engine import EntryEngine
 from app.ranking_engine import RankingEngine
 from app.risk_engine import RiskEngine
-from app.chart_generator import ChartGenerator
+from app.plotly_chart_generator import PlotlyChartGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +25,13 @@ class Scanner:
     
     def __init__(self):
         # Initialize all engines
-        self.data_provider = DataProvider()
+        self.data_provider = YahooDataProvider()
         self.signal_engine = SignalEngine()
         self.confirm_engine = ConfirmEngine(self.data_provider)
         self.entry_engine = EntryEngine()
         self.ranking_engine = RankingEngine()
         self.risk_engine = RiskEngine()
-        self.chart_generator = ChartGenerator()
+        self.chart_generator = PlotlyChartGenerator()
         
         logger.info("✅ Scanner initialized with all engines")
     
